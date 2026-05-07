@@ -1,0 +1,26 @@
+name: 每日自動掃描推播
+
+on:
+  schedule:
+    # 這是 UTC 時間 00:50，等於台灣時間 08:50 (週一至週五)
+    - cron: '50 0 * * 1-5'
+  workflow_dispatch: # 讓您可以手動點擊執行測試
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 複製程式碼
+        uses: actions/checkout@v3
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 安裝必要套件
+        run: |
+          pip install yfinance pandas numpy twstock requests
+
+      - name: 執行掃描並發送 LINE
+        run: python Screener.py
