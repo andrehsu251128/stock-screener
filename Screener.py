@@ -34,26 +34,24 @@ def send_line_message(message):
         print(f"LINE 推播失敗: {e}")
 
 # ==========================================
-# 2. 定義篩選邏輯 (60日線 + KD 50以下)
+# 2. 定義篩選邏輯 (無腦抓 KD 黃金交叉測試版)
 # ==========================================
 def check_turnaround_setup(hist):
-    """中期位階 + KD 低檔交叉(<50) + CDP 當沖預測"""
-    if len(hist) < 60: return False, {}
+    """無位階限制 + KD 黃金交叉(<80) + CDP 當沖預測"""
+    if len(hist) < 20: return False, {} # 測試版只要20天資料即可
 
     c = hist['Close']; h = hist['High']; l = hist['Low']
 
     try:
-        # 條件一：中期位階 (低於 60 日季線)
-        ma60 = c.rolling(window=60).mean()
-        if c.iloc[-1] >= ma60.iloc[-1]: return False, {}
+        # ⚠️ 均線守門員已暫時撤除，不限位階！
 
-        # 條件二：KD 交叉且在 50 以下
+        # 條件：KD 交叉且在 80 以下 (幾乎每天都有)
         rsv = (c - l.rolling(9).min()) / (h.rolling(9).max() - l.rolling(9).min()) * 100
         k = rsv.ewm(com=2).mean(); d = k.ewm(com=2).mean()
         k_val, d_val = k.iloc[-1], d.iloc[-1]
         
-        # 放寬門檻至 50
-        if not (k_val < 50 and d_val < 50 and k_val > d_val): return False, {}
+        # 只要 K > D 且 K 小於 80 就抓！
+        if not (k_val < 80 and k_val > d_val): return False, {}
 
         # 計算 CDP 參考價
         prev_h, prev_l, prev_c = h.iloc[-1], l.iloc[-1], c.iloc[-1]
