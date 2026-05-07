@@ -122,4 +122,27 @@ def main():
     # 準備 LINE 訊息
     msg_lines = ["====== 🚀 盤前當沖雷達 ======"]
     
-    if
+    if found_targets:
+        df_result = pd.DataFrame(found_targets)
+        # 依 K 值排序，挑選前 5 檔
+        df_result = df_result.sort_values(by='K').head(5).reset_index(drop=True)
+        
+        msg_lines.append(f"今日偵測到 {len(df_result)} 檔潛力反彈股：\n")
+        
+        for index, row in df_result.iterrows():
+            msg_lines.append(f"🎯 {row['代號']} {row['名稱']} (K:{row['K']})")
+            msg_lines.append(f"   收盤: {row['Price']}")
+            msg_lines.append(f"   🚩 建議買入: {row['Buy']}")
+            msg_lines.append(f"   💰 建議賣出: {row['Sell']}")
+            msg_lines.append("-" * 15)
+            
+        msg_lines.append("\n⚠️ CDP 價格僅供參考，請搭配開盤量能判斷。")
+    else:
+        msg_lines.append("本日無符合條件標的，空手觀望。")
+        
+    final_message = "\n".join(msg_lines)
+    send_line_message(final_message)
+    print("✅ 雲端推播已發送！")
+
+if __name__ == "__main__":
+    main()
